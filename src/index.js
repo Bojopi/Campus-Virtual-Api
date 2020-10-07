@@ -2,6 +2,8 @@ const express = require('express')
 const path = require('path')
 const morgan = require('morgan')
 
+const multer = require('multer')
+
 //initializations
 const app = express()
 require('./database') //conexion a la bd 
@@ -18,6 +20,11 @@ app.use(function (req, res, next) {
     res.header('Access-Control-Allow-Headers', 'Content-Type');
     next();
   });
+
+
+//   app.use(multer({
+//     dest:'./imagenes'
+// }));
 
 
 //routes

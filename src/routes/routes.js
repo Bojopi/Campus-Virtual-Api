@@ -1,18 +1,37 @@
 const express = require('express')
 const router = express.Router()
 const pool = require('../database')
+const path = require('path')
+const multer = require('multer')
+
+const storage = multer.diskStorage({
+    destination:'../../blogcampus/src/img',
+    filename:(req,file,cb)=>{
+        cb(null, file.originalname)
+    }
+})
+
+const upload = multer({
+    storage:storage,
+    dest: 'img/'
+})
+//
 
 //-------------ROUTES-------------------
 router.get('/', function (req, res, next) {
-    res.json({
-        message: 'Hola'
-    })
+    res.sendFile(path.resolve('index.html'))
 });
 
 
 
 //----------------API---------------------------
 let json = {}
+
+router.post('/api/a', upload.single('imagen'), function (req, res, next) {
+    console.log(req.file)
+    // console.log(req.body.titulo)
+    // res.status(200)
+});
 
 router.get('/api/traerArticulos', async (req, res, next) => {
     let all = await pool.query(`select articulo.id, titulo, introduccion,contenido,fecha,img,personal.nombre || ' ' || personal.apellido as "Autor" from articulo,personal 
