@@ -29,7 +29,7 @@ app.use(function (req, res, next) {
 
 //routes
 app.use('/', require('./routes/routes'))
-// app.use('/photos', express.static(__dirname + '/photos'))
+app.use('/img', express.static('./img'))
 
 //starting the server
 app.listen(app.get('port'), () => {
