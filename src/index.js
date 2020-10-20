@@ -4,6 +4,8 @@ const morgan = require('morgan')
 
 const multer = require('multer')
 
+const cors = require('cors')
+
 //initializations
 const app = express()
 require('./database') //conexion a la bd 
@@ -20,6 +22,8 @@ app.use(function (req, res, next) {
     res.header('Access-Control-Allow-Headers', 'Content-Type');
     next();
   });
+//Habilitar cors
+app.use(cors());
 
 
 //   app.use(multer({

@@ -4,6 +4,8 @@ const pool = require('../database')
 const path = require('path')
 const multer = require('multer')
 
+const JWT = require('jsonwebtoken');
+
 let nuevoNombre = '';
 
 const storage = multer.diskStorage({
@@ -120,6 +122,34 @@ router.get('/api/traerRecurso/:id', async (req, res, next) => {
     json = all.rows
     // console.log(json)
     res.json(all.rows)
+})
+router.get('/api/autenticacion/:usu/:pass', async (req, res, next) => {
+    const token = req.header('x-auth-token');
+    let all = await pool.query(`select * from usuario where usu = '${req.params.usu}' and pass = MD5('${req.params.pass}')`);
+    json = all.rows
+    
+    if (json.length > 0) {
+        const payload = {
+            usuario: {
+                id: json[0].id
+            }
+        };
+
+        JWT.sign(payload, 'PALABRA SECRETA', {
+            expiresIn:3600 //1 hora
+        }, (error,token)=>{
+            if (error) {
+                throw error;
+            } 
+            res.json({ token:token,datos: json[0]});
+        });
+        // console.log(json[0].id)
+        // res.json(all.rows)
+        // return
+        return
+    }
+    console.log(json.length)
+    res.json('Ningun usuario registrado')
 })
 
 
