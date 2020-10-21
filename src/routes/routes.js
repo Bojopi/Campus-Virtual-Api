@@ -14,6 +14,12 @@ const storage = multer.diskStorage({
         cb(null, nuevoNombre + '.jpg');
     }
 })
+const storageLogo = multer.diskStorage({
+    destination:'img/recursos-logos/',
+    filename:(req,file,cb)=>{
+        cb(null, nuevoNombre + '.png');
+    }
+})
 
 function checkFileType(file, cb) {
         //extenciones permitidas
@@ -31,6 +37,13 @@ function checkFileType(file, cb) {
 const upload = multer({
     storage:storage,
     dest: 'img/',
+    fileFilter: function (req, file, cb) {
+        checkFileType(file, cb)
+    }
+})
+const uploadLogo = multer({
+    storage:storageLogo,
+    dest: 'img/recursos-logos/',
     fileFilter: function (req, file, cb) {
         checkFileType(file, cb)
     }
@@ -88,14 +101,37 @@ router.post('/api/a', upload.single('imagen'), function (req, res, next) {
     // console.log(req.body.titulo)
     res.json(req.file)
 });
+router.post('/api/logoRecursos', uploadLogo.single('logo'), function (req, res, next) {
+    console.log(req.file)
+    // console.log(req.body.titulo)
+    res.json(req.file)
+});
 
-router.get('/api/traerArticulos', async (req, res, next) => {
-    let all = await pool.query(`select articulo.id, titulo, introduccion,contenido,fecha,img,personal.nombre || ' ' || personal.apellido as "Autor" from articulo,personal 
-    where id_autor = personal.id order by articulo.id desc offset (0*10) rows fetch next 10 rows only`);
+router.get('/api/traerArticulos/:pagina', async (req, res, next) => {
+    if (req.params.pagina == 1) {
+        let all = await pool.query(`select articulo.id, titulo, introduccion,contenido,fecha,img,personal.nombre || ' ' || personal.apellido as "Autor" from articulo,personal 
+        where id_autor = personal.id order by articulo.id desc offset (0*5) rows fetch next 5 rows only`);
+        json = all.rows
+        // console.log(json)
+        res.json(all.rows)
+        return
+        
+    }else{
+        let all = await pool.query(`select articulo.id, titulo, introduccion,contenido,fecha,img,personal.nombre || ' ' || personal.apellido as "Autor" from articulo,personal 
+        where id_autor = personal.id order by articulo.id desc offset (${req.params.pagina-1}*5) rows fetch next 5 rows only`);
+        json = all.rows
+        // console.log(json)
+        res.json(all.rows)
+        return
+    }
+})
+router.get('/api/cantidadPaginas', async (req, res, next) => {  
+    let all = await pool.query(`select count(*) as cantidad from articulo`);
     json = all.rows
     // console.log(json)
-    res.json(all.rows)
+    res.json(all.rows)       
 })
+
 router.get('/api/traerArticulo/:id', async (req, res, next) => {
     let all = await pool.query(`select articulo.id, titulo, introduccion,contenido,fecha,img,personal.nombre || ' ' || personal.apellido as "Autor" 
                             from articulo join personal
@@ -158,6 +194,14 @@ router.post('/api/registrarArticulo', async (req, res, next) => {
     let all = await pool.query(`insert into articulo(titulo,introduccion,contenido,fecha,img,id_autor) values('${body.titulo}','${body.introduccion}','${body.contenido}','${body.fecha}','${body.img}',${body.id_autor})`);
     json = all.rows
     nuevoNombre=body.img;
+    // console.log(json)
+    res.json(all.rows)
+})
+router.post('/api/registrarRecurso', async (req, res, next) => {
+    let body=req.body
+    let all = await pool.query(`insert into recurso(titulo,descripcion,logo,video,enlace,id_categoria)values('${body.titulo}','${body.descripcion}','${body.logo}','${body.video}','${body.enlace}',${body.id_categoria})`);
+    json = all.rows
+    nuevoNombre=body.logo;
     // console.log(json)
     res.json(all.rows)
 })
