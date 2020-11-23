@@ -160,32 +160,26 @@ router.get('/api/traerRecurso/:id', async (req, res, next) => {
     res.json(all.rows)
 })
 router.get('/api/autenticacion/:usu/:pass', async (req, res, next) => {
-    const token = req.header('x-auth-token');
-    let all = await pool.query(`select * from usuario where usu = '${req.params.usu}' and pass = MD5('${req.params.pass}')`);
+    
+    let all = await pool.query(`select personal.id, usuario.usu,usuario.id_tipo , personal.nombre || ' ' || personal.apellido as "nombre"  
+    from personal, usuario where usuario.id_personal = personal.id and usuario.usu='${req.params.usu}' and usuario.pass= MD5('${req.params.pass}')`);
     json = all.rows
     
     if (json.length > 0) {
-        const payload = {
-            usuario: {
-                id: json[0].id
-            }
-        };
-
-        JWT.sign(payload, 'PALABRA SECRETA', {
-            expiresIn:3600 //1 hora
-        }, (error,token)=>{
+        JWT.sign({json},'my_secret_key', {
+            expiresIn:3600
+        },(error,token)=>{
             if (error) {
                 throw error;
-            } 
-            res.json({ token:token,datos: json[0]});
-        });
-        // console.log(json[0].id)
-        // res.json(all.rows)
-        // return
-        return
+            }
+            res.json({token})
+        })
+    }else{
+        
+        
+        res.json(all.rows)
+
     }
-    console.log(json.length)
-    res.json('Ningun usuario registrado')
 })
 
 
